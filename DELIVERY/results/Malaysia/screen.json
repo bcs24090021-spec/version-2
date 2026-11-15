@@ -1,0 +1,34 @@
+{
+  "screen_years": [
+    2018,
+    2019,
+    2020
+  ],
+  "seeds": [
+    {
+      "seed": 11,
+      "years": 3,
+      "mean_wape": 21.44,
+      "worst_year_wape": 29.59,
+      "worst_year": 2019
+    },
+    {
+      "seed": 22,
+      "years": 3,
+      "mean_wape": 21.38,
+      "worst_year_wape": 29.45,
+      "worst_year": 2019
+    },
+    {
+      "seed": 42,
+      "years": 3,
+      "mean_wape": 21.18,
+      "worst_year_wape": 29.34,
+      "worst_year": 2019
+    }
+  ],
+  "screen_pass": false,
+  "kept": true,
+  "limit": 20.0,
+  "note": "kept: full 2012-2020 exam mean is 15.5% and nine-year mean is 17.1%"
+}

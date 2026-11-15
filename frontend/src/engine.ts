@@ -1,6 +1,6 @@
 import { confidenceAccepted, dateSelected, inBBox, type Filters, type DateInterval } from './selection.ts';
 export type Observation = { latitude:number; longitude:number; acq_date:string; acq_time:string; satellite:string; instrument:string; confidence:string; frp:number; daynight:string; brightness:number; is_synthetic?:boolean };
-export type Coverage = {sensor:string;start:string;end:string;country?:string;product?:string;url?:string;bbox?:number[];observedOnly?:boolean;shape?:Shape;dates?:DateInterval[];scopeKey?:string};
+export type Coverage = {sensor:string;start:string;end:string;country?:string;countryId?:string;product?:string;url?:string;bbox?:number[];observedOnly?:boolean;shape?:Shape;dates?:DateInterval[];scopeKey?:string};
 export type Dataset = {metadata:{title:string;start:string;end:string;note:string;coverage:Coverage[]};rows:(number|string)[][]};
 export type Shape = {type:'Polygon';coordinates:number[][][]}|{type:'MultiPolygon';coordinates:number[][][][]};
 export type Fit = {available:boolean;n:number;slope?:number;intercept?:number;r2?:number|null;bias?:number;raw_bias?:number;spread?:number;rmse?:number;scope?:string};
@@ -54,7 +54,7 @@ function inRing(x:number,y:number,ring:PreparedRing){
   return inside;
 }
 const preparedShapes=new WeakMap<Shape,PreparedRing[][]>();
-export function inShape(r:Observation,shape?:Shape){
+export function inShape(r:Pick<Observation,'latitude'|'longitude'>,shape?:Shape){
   if(!shape)return true;
   let polygons=preparedShapes.get(shape);if(!polygons){polygons=(shape.type==='Polygon'?[shape.coordinates]:shape.coordinates).map(p=>p.map(prepareRing));preparedShapes.set(shape,polygons);}
   return polygons.some(p=>inRing(r.longitude,r.latitude,p[0])&&!p.slice(1).some(h=>inRing(r.longitude,r.latitude,h)));
@@ -70,7 +70,7 @@ export function analyze(rows:Observation[],coverage:Coverage[],bbox:number[],sta
   for(const r of selected){if(!grouped.has(r.acq_date))grouped.set(r.acq_date,{});const d=grouped.get(r.acq_date)!;
     d[r.instrument]??={pixels:new Map(),detections:0};const s=d[r.instrument],pixel=`${Math.floor(r.latitude/.01)},${Math.floor(r.longitude/.01)}`;s.pixels.set(pixel,Math.max(s.pixels.get(pixel)||0,r.frp));s.detections++;
     if(r.acq_date>=start&&r.acq_date<=end)cells.add(`${Math.floor(r.latitude/grid)},${Math.floor(r.longitude/grid)}`);}
-  const validCoverage=coverage.filter(c=>(!c.bbox||(JSON.stringify(c.bbox)===JSON.stringify(bbox)&&JSON.stringify(c.shape)===JSON.stringify(shape)))&&(!c.country||c.country==='Malaysia'&&options?.region==='country:MYS'));
+  const validCoverage=coverage.filter(c=>(!c.bbox||(JSON.stringify(c.bbox)===JSON.stringify(bbox)&&JSON.stringify(c.shape)===JSON.stringify(shape)))&&(!c.country||options?.region===`country:${c.countryId||(c.country==='Malaysia'?'MYS':'')}`));
   const covers=(d:string,s:string)=>sensors.includes(s)&&(!!grouped.get(d)?.[s]?.pixels.size||validCoverage.some(c=>c.sensor===s&&c.start<=d&&c.end>=d&&(!c.dates||dateSelected(d,c.dates))&&(!c.observedOnly||!!grouped.get(d)?.[s]?.pixels.size)));
 
   const value=(d:string,s:string,metric:string)=>{const p=grouped.get(d)?.[s]?.pixels;return metric==='count'?(p?.size||0):[...(p?.values()||[])].reduce((a,b)=>a+b,0);};

@@ -4,3 +4,6 @@
 .maplibregl-ctrl-attrib a{text-decoration:underline}
 /* Portal menus escape the map's clipped viewport, including the stacked phone layout. */
 .popover-anchor .anchored-popover{position:relative;top:auto;left:auto;right:auto;width:100%;max-width:none;max-height:var(--popover-height,70dvh)}
+
+.map-advanced-panel .advanced-apply{position:sticky;bottom:-13px;background:var(--floating);padding:12px 0 4px;margin-top:12px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
+.map-advanced-panel .advanced-apply button{font-size:12px;padding:9px 14px}

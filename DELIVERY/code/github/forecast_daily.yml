@@ -1,0 +1,42 @@
+# Daily next-day fire spread forecast. Copy to .github/workflows/forecast_daily.yml in the repository.
+# Assumes this DELIVERY/code folder sits at code/ in the repo. Change OUT_DIR to where the website reads data.
+name: daily fire forecast
+
+on:
+  schedule:
+    - cron: "0 22 * * *"   # 22:00 UTC: Malaysia's previous day and Argentina's same day are both complete
+  workflow_dispatch: {}      # also runnable by hand from the Actions tab
+
+permissions:
+  contents: write
+
+env:
+  OUT_DIR: frontend/public/data/forecast
+  COUNTRIES: Malaysia Argentina
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy scipy scikit-learn joblib
+      - name: Download NASA FIRMS NOAA-20 VIIRS, last 7 days (no key needed)
+        run: curl -sf -o /tmp/J1_7d.csv https://firms.modaps.eosdis.nasa.gov/data/active_fire/noaa-20-viirs-c2/csv/J1_VIIRS_C2_Global_7d.csv
+      - name: Forecast
+        run: |
+          mkdir -p "$OUT_DIR"
+          for c in $COUNTRIES; do
+            python code/spread_model.py --country "$c" --forecast /tmp/J1_7d.csv
+            cp code/output/"$c"/spread/forecast_*.csv "$OUT_DIR"/
+            cp "$(ls code/output/"$c"/spread/forecast_*.csv | tail -1)" "$OUT_DIR/latest_$c.csv"
+          done
+          date -u +"%Y-%m-%dT%H:%MZ" > "$OUT_DIR/updated.txt"
+      - name: Commit
+        run: |
+          git config user.name "forecast-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add "$OUT_DIR"
+          git diff --cached --quiet || (git commit -m "daily fire forecast" && git push)

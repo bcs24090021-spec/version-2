@@ -208,3 +208,9 @@ FIREATLAS_BASE_PATH=/harmonization-MODIS-VIIRS/ npm run preview -- --port 5175
 ```
 
 Then visit `http://127.0.0.1:5175/harmonization-MODIS-VIIRS/`. Normal local and FastAPI builds omit `FIREATLAS_BASE_PATH` and continue to use `/`.
+
+## Five-country Delivery archive
+
+Fire explorer now includes a **Data archive** selector for observed Aqua MODIS / S-NPP data from Malaysia, Argentina, Canada, India and the United States (2003–2020; S-NPP from 2012). Historical record has a **Historical archive** country selector, with delivered monthly estimates on a 0.25° grid for the four additional countries. Observations and estimated cells remain separate, including in exports and the timeline.
+
+Data are compressed and fetched by country and month. See [Delivery integration and rebuild instructions](docs/data/delivery-integration.md) for provenance, scientific limits and verification commands. The corrected Indonesia validation workbook supersedes the older PDF/summary figures.

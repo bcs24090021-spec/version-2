@@ -1,0 +1,34 @@
+{
+  "screen_years": [
+    2018,
+    2019,
+    2020
+  ],
+  "seeds": [
+    {
+      "seed": 11,
+      "years": 3,
+      "mean_wape": 9.41,
+      "worst_year_wape": 9.65,
+      "worst_year": 2018
+    },
+    {
+      "seed": 22,
+      "years": 3,
+      "mean_wape": 9.42,
+      "worst_year_wape": 9.76,
+      "worst_year": 2018
+    },
+    {
+      "seed": 42,
+      "years": 3,
+      "mean_wape": 9.36,
+      "worst_year_wape": 9.57,
+      "worst_year": 2018
+    }
+  ],
+  "screen_pass": true,
+  "kept": true,
+  "limit": 20.0,
+  "note": ""
+}

@@ -1,0 +1,30 @@
+import {chromium,expect} from '@playwright/test';
+import {readFile} from 'node:fs/promises';
+import {options} from './browser-options.mjs';
+const browser=await chromium.launch(options),root=process.env.BASE_URL||'http://127.0.0.1:5173';
+try{
+ const page=await browser.newPage({viewport:{width:1440,height:960}}),errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/delivery/')&&r.url().endsWith('.json.gz'))requests.push(r.url());});
+ await page.route('**/server.arcgisonline.com/**',route=>route.abort());
+ await page.goto(root+'?archive=Argentina&region=country:ARG&start=2019-03-01&end=2019-03-31',{waitUntil:'domcontentloaded'});
+ await expect(page.getByRole('combobox',{name:'Explorer archive'})).toHaveValue('Argentina',{timeout:90000});
+ await expect(page.locator('.explorer-count strong')).not.toHaveText('0');
+ await expect(page.locator('.map-coverage-note')).toContainText('Argentina archive');
+ expect(requests.filter(u=>u.includes('/points/'))).toHaveLength(1);expect(requests[0]).toContain('/2019-03.json.gz');
+ await page.getByRole('checkbox',{name:'Timeline',exact:true}).check();await expect(page.getByRole('slider',{name:'Hotspot detection time'})).toBeVisible();
+ await page.getByRole('button',{name:'Share view',exact:true}).click();expect(new URL(page.url()).searchParams.get('archive')).toBe('Argentina');
+ await page.goto(root+'?hCountry=Argentina&hMonth=2003-03#history',{waitUntil:'domcontentloaded'});
+ await expect(page.getByRole('combobox',{name:'Historical country'})).toHaveValue('Argentina');
+ await expect(page.getByRole('button',{name:'Estimated cells CSV',exact:true})).toBeEnabled({timeout:90000});
+ await expect(page.locator('.final-provenance-note')).toContainText('Estimated monthly cells');
+ const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Map GeoJSON',exact:true}).click();const file=await downloadEvent,geo=JSON.parse(await readFile(await file.path(),'utf8'));
+ expect(geo.features.some(f=>f.geometry.type==='Polygon'&&f.properties.is_estimated===true)).toBe(true);expect(geo.features.some(f=>f.geometry.type==='Point'&&f.properties.instrument==='MODIS')).toBe(true);expect(geo.features.filter(f=>f.properties.is_estimated).every(f=>!('acq_time' in f.properties))).toBe(true);
+ await page.getByRole('checkbox',{name:'Timeline',exact:true}).check();await page.getByRole('slider',{name:'Hotspot detection time'}).focus();await page.keyboard.press('End');
+ await page.getByLabel('Historical month',{exact:true}).fill('2019-03');
+ await expect(page.locator('.final-provenance-note')).toContainText('Observed Aqua MODIS and S-NPP VIIRS');
+ await expect(page.getByRole('button',{name:'Estimated cells CSV',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Accuracy',exact:true}).click();await expect(page.getByRole('heading',{name:'Argentina: measured monthly error'})).toBeVisible();await expect(page.locator('.delivery-score-table')).toContainText('11.1');
+ await page.getByRole('button',{name:'Downloads',exact:true}).click();await expect(page.getByRole('link',{name:'pred_2003_2011_monthly.csv',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Calendar & map',exact:true}).click();await page.setViewportSize({width:390,height:844});await expect(page.getByRole('combobox',{name:'Historical country'})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect(errors).toEqual([]);console.log('PASS: date-scoped compressed explorer archive, preserved sharing, estimated grid polygons separate from observed points/timestamps, historical observed months, validation/downloads, mobile width, no runtime errors');
+}finally{await browser.close();}

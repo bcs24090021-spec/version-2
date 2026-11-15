@@ -1,0 +1,8 @@
+{
+  "method": "fusion_G1",
+  "train_years": "2012-2020",
+  "predict_years": "2003-2011",
+  "seed": 42,
+  "trees": 200,
+  "climate": "2003-2011 mean of fire years, excluding the predicted year"
+}

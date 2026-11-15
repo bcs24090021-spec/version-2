@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {analyze} from '../frontend/src/engine.ts';
+import {defaultFilters,inBBox} from '../frontend/src/selection.ts';
+const filters={...defaultFilters(),region:'country:ARG',bbox:[-74,-56,-53,-21],start:'2012-01-01',end:'2012-01-31',dates:[['2012-01-01','2012-01-31']] as [string,string][]};
+const coverage=[{sensor:'MODIS',country:'Argentina',countryId:'ARG',start:'2012-01-01',end:'2012-12-31'},{sensor:'VIIRS',country:'Argentina',countryId:'ARG',start:'2012-01-20',end:'2012-12-31'}];
+const run=(region:string)=>analyze([],coverage,filters.bbox,filters.start,filters.end,30,filters.sensors,.25,undefined,{...filters,region});
+const days=run('country:ARG').days;assert.equal(days[0].modis,0);assert.equal(days[0].viirs,null);assert.equal(days[19].viirs,0);assert.equal(days.at(-1)!.viirs,0);
+assert(run('country:IND').days.every(d=>d.modis===null&&d.viirs===null));assert(run('custom').days.every(d=>d.modis===null&&d.viirs===null));
+assert(inBBox(-155,20,[170,18,-66,72]));assert(inBBox(-100,45,[170,18,-66,72]));assert(inBBox(179,52,[170,18,-66,72]));assert(!inBBox(0,45,[170,18,-66,72]));
+console.log('PASS: country-specific complete coverage, missing early January S-NPP, no false zeros in other countries/custom areas, wrapped USA bounds');

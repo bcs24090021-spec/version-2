@@ -1,0 +1,29 @@
+{
+  "country": "Argentina",
+  "train": "2012-2018",
+  "test": "2019-2020",
+  "train_rows": 9055696,
+  "test_rows": 13184927,
+  "all": {
+    "days": 672,
+    "auc_model": 0.87,
+    "auc_persistence": 0.833,
+    "diff": 0.036,
+    "diff_95ci": [
+      0.033,
+      0.04
+    ],
+    "days_model_wins": 0.85
+  },
+  "new": {
+    "days": 554,
+    "auc_model": 0.743,
+    "auc_persistence": 0.667,
+    "diff": 0.076,
+    "diff_95ci": [
+      0.069,
+      0.082
+    ],
+    "days_model_wins": 0.888
+  }
+}
